@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: nangarhar-library
+    runtime: python
+    plan: starter            # Persistent Disk د وړیا پلان سره نه کار کوي
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: ADMIN_EMAIL      # د مدیر ایمیل (په Render ډشبورډ کې یې بدل کړئ)
+        value: admin@example.com
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: library-data
+      mountPath: /var/data
+      sizeGB: 5

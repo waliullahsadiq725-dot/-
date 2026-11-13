@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ps" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>د ننګرهار پوهنتون کتابتون</title>
+  <meta name="description" content="د ننګرهار پوهنتون محصلینو او استادانو لپاره د PDF کتابونو او درسي مواد شریکولو کتابتون.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@600;700;800&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    // د تیارې حالت مخکې له ښکارېدو ټاکل، چې بشپړه پاڼه ونه ځلېږي
+    try {
+      var t = localStorage.getItem("nul_theme");
+      if (!t && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========== ننوتل / نوم لیکنه ========== -->
+  <div id="authView" class="auth-wrap hidden">
+    <section class="auth-hero" aria-hidden="false">
+      <div>
+        <h1>د ننګرهار پوهنتون کتابتون</h1>
+        <p>خپل درسي PDF فایلونه شریک کړئ، د نورو کتابونه ولولئ او ډاونلوډ یې کړئ.</p>
+      </div>
+      <div class="shelf" id="shelf" aria-hidden="true"></div>
+    </section>
+
+    <section class="auth-panel">
+      <div class="auth-box">
+        <div class="tabs" role="tablist">
+          <button class="tab" role="tab" data-tab="login" aria-selected="true">ننوتل</button>
+          <button class="tab" role="tab" data-tab="register" aria-selected="false">نوی اکاونټ</button>
+        </div>
+
+        <form id="loginForm" class="form">
+          <h2>بیرته ښه راغلاست</h2>
+          <p class="sub">خپل ایمیل او پاسورډ ولیکئ.</p>
+          <label class="field"><span>ایمیل</span><input class="ltr" type="email" name="email" required autocomplete="email"></label>
+          <label class="field"><span>پاسورډ</span><input class="ltr" type="password" name="password" required autocomplete="current-password"></label>
+          <button class="btn" type="submit">ننوتل</button>
+        </form>
+
+        <form id="registerForm" class="form hidden">
+          <h2>اکاونټ جوړ کړئ</h2>
+          <p class="sub">وړیا ده او یوه دقیقه نه نیسي.</p>
+          <label class="field"><span>بشپړ نوم</span><input type="text" name="name" required minlength="2" maxlength="80" autocomplete="name"></label>
+          <label class="field"><span>ایمیل</span><input class="ltr" type="email" name="email" required autocomplete="email"></label>
+          <label class="field"><span>پاسورډ (لږ تر لږه ۶ توري)</span><input class="ltr" type="password" name="password" required minlength="6" autocomplete="new-password"></label>
+          <label class="field"><span>د اکاونټ ډول</span>
+            <select name="role" required>
+              <option value="student">محصل</option>
+              <option value="teacher">استاد</option>
+            </select>
+          </label>
+          <button class="btn" type="submit">اکاونټ جوړ کړه</button>
+        </form>
+        <p id="authMsg" class="msg" role="alert"></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========== اصلي اپلیکېشن ========== -->
+  <div id="appView" class="shell hidden">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark" data-icon="book"></span><span>ننګرهار<br>کتابتون</span></div>
+      <nav class="nav" aria-label="اصلي مېنو">
+        <button class="nav-btn" data-view="files"><span data-icon="grid"></span><span>ټول فایلونه</span></button>
+        <button class="nav-btn" data-view="mine"><span data-icon="folder"></span><span>زما فایلونه</span></button>
+        <button class="nav-btn" data-view="favorites"><span data-icon="heart"></span><span>خوښې</span></button>
+        <button class="nav-btn" data-view="profile"><span data-icon="user"></span><span>پروفایل</span></button>
+        <button class="nav-btn hidden" id="adminNav" data-view="admin"><span data-icon="shield"></span><span>مدیریت</span></button>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="who"><b id="whoName"></b><small id="whoRole"></small></div>
+        <div class="side-actions">
+          <button class="btn-icon" id="themeBtn" aria-label="د تیارې/روښانه حالت بدلول"><span data-icon="moon"></span></button>
+          <button class="btn-icon" id="logoutBtn" aria-label="وتل"><span data-icon="logout"></span></button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div class="searchbox">
+          <span data-icon="search"></span>
+          <label class="sr-only" for="search">لټون</label>
+          <input id="search" type="search" placeholder="لټون په کتابونو او لیکوالانو کې…" autocomplete="off">
+        </div>
+        <button class="btn" id="openUpload" aria-label="PDF اپلوډ کړئ"><span data-icon="upload"></span><span>PDF اپلوډ</span></button>
+      </header>
+
+      <main class="content">
+        <!-- فایلونه (ټول / زما / خوښې) -->
+        <section id="view-files">
+          <div class="page-head">
+            <div><h2 id="filesTitle"></h2><p id="filesSub"></p></div>
+          </div>
+          <ul class="figures hidden" id="figures"></ul>
+          <div class="toolbar">
+            <div class="chips" id="chips" role="group" aria-label="کټګورۍ"></div>
+            <label class="sr-only" for="sort">ترتیب</label>
+            <select id="sort">
+              <option value="new">نوي لومړی</option>
+              <option value="popular">ډېر ډاونلوډ شوي</option>
+              <option value="views">ډېر کتل شوي</option>
+              <option value="title">د سرلیک له مخې</option>
+            </select>
+          </div>
+          <div id="fileGrid" class="shelf-grid"></div>
+          <div id="fileEmpty" class="empty hidden"></div>
+          <nav id="pager" class="pager" aria-label="پاڼې"></nav>
+        </section>
+
+        <!-- پروفایل -->
+        <section id="view-profile" class="hidden">
+          <div class="page-head"><div><h2>پروفایل</h2><p id="profileSub"></p></div></div>
+          <div class="cols">
+            <div class="panel">
+              <h3>شخصي معلومات</h3>
+              <form id="profileForm" class="form">
+                <label class="field"><span>نوم</span><input type="text" name="name" required minlength="2" maxlength="80"></label>
+                <label class="field"><span>ایمیل</span><input class="ltr" type="email" name="email" disabled></label>
+                <button class="btn" type="submit">بدلونونه خوندي کړه</button>
+                <p id="profileMsg" class="msg" role="alert"></p>
+              </form>
+            </div>
+            <div class="panel">
+              <h3>پاسورډ بدلول</h3>
+              <form id="passwordForm" class="form">
+                <label class="field"><span>اوسنی پاسورډ</span><input class="ltr" type="password" name="current" required autocomplete="current-password"></label>
+                <label class="field"><span>نوی پاسورډ (لږ تر لږه ۶ توري)</span><input class="ltr" type="password" name="new" required minlength="6" autocomplete="new-password"></label>
+                <button class="btn" type="submit">پاسورډ بدل کړه</button>
+                <p id="passwordMsg" class="msg" role="alert"></p>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- مدیریت -->
+        <section id="view-admin" class="hidden">
+          <div class="page-head"><div><h2>مدیریت</h2><p>د کارونکو او محتوا کنټرول.</p></div></div>
+          <ul class="figures" id="adminFigures"></ul>
+          <div class="cols">
+            <div class="panel">
+              <h3>د کټګورۍ له مخې فایلونه</h3>
+              <div id="catBars" class="bars"></div>
+            </div>
+            <div class="panel">
+              <h3>کارونکي</h3>
+              <label class="field" style="margin-bottom:10px"><span class="sr-only">د کارونکي لټون</span>
+                <input id="userSearch" type="search" placeholder="د نوم یا ایمیل له مخې لټون…">
+              </label>
+              <div id="userList"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ========== ډیالوګونه ========== -->
+  <dialog id="uploadDialog" aria-labelledby="uploadTitle">
+    <div class="dlg-head"><h3 id="uploadTitle">PDF اپلوډ کړئ</h3><button class="btn-icon" data-close aria-label="بندول"><span data-icon="x"></span></button></div>
+    <form id="uploadForm" class="dlg-body form">
+      <label class="field"><span>سرلیک</span><input type="text" name="title" required minlength="2" maxlength="150"></label>
+      <label class="field"><span>کټګورۍ</span><select name="category" id="uploadCategory"></select></label>
+      <label class="field"><span>توضیح (اختیاري)</span><textarea name="description" rows="3" maxlength="1000"></textarea></label>
+      <label class="drop" id="drop">
+        <input type="file" name="file" accept="application/pdf,.pdf" required>
+        <span data-icon="upload"></span>
+        <b id="dropName">PDF فایل وټاکئ یا دلته یې راوکاږئ</b>
+        <span id="dropHint">تر 20MB</span>
+      </label>
+      <div class="progress hidden" id="progress"><i></i></div>
+      <p id="uploadMsg" class="msg" role="alert"></p>
+      <button class="btn" type="submit">اپلوډ</button>
+    </form>
+  </dialog>
+
+  <dialog id="detailDialog" aria-labelledby="detailTitle">
+    <div class="dlg-head"><h3 id="detailTitle"></h3><button class="btn-icon" data-close aria-label="بندول"><span data-icon="x"></span></button></div>
+    <div class="dlg-body" id="detailBody"></div>
+  </dialog>
+
+  <dialog id="previewDialog" class="dlg-wide" aria-labelledby="previewTitle">
+    <div class="dlg-head">
+      <h3 id="previewTitle"></h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <a class="btn btn-soft btn-sm" id="previewTab" target="_blank" rel="noopener">په نوې ټب کې</a>
+        <button class="btn-icon" data-close aria-label="بندول"><span data-icon="x"></span></button>
+      </div>
+    </div>
+    <div class="dlg-body"><iframe id="previewFrame" title="د PDF کتنه"></iframe></div>
+  </dialog>
+
+  <dialog id="tempDialog" aria-labelledby="tempTitle">
+    <div class="dlg-head"><h3 id="tempTitle">نوی لنډمهاله پاسورډ</h3><button class="btn-icon" data-close aria-label="بندول"><span data-icon="x"></span></button></div>
+    <div class="dlg-body">
+      <p id="tempWho" style="margin-top:0"></p>
+      <div class="temp-pass" id="tempPass"></div>
+      <p class="muted">دا پاسورډ کارونکي ته ورکړئ؛ بیا به نه ښودل کېږي. کارونکی باید وروسته یې په پروفایل کې بدل کړي.</p>
+    </div>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
